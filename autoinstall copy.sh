@@ -25,16 +25,6 @@ install_node() {
 # Function to initialize the node
 initialize_node() {
     echo "Initializing GaiaNet Node..."
-    
-    # Load .bashrc to ensure the environment variables are loaded
-    if [ -f "$HOME/.bashrc" ]; then
-        echo "Loading environment variables from .bashrc..."
-        source "$HOME/.bashrc"
-    else
-        echo "No .bashrc file found. Skipping..."
-    fi
-    
-    # Initialize the node
     gaianet init
     echo "Initialization completed."
 }
@@ -42,24 +32,8 @@ initialize_node() {
 # Function to start the node
 start_node() {
     echo "Starting GaiaNet Node..."
-    
-    # Define the starting port
-    local port=8080
-    
-    # Check if the port is in use and increment if necessary
-    while lsof -i :$port &>/dev/null; do
-        echo "Port $port is already in use. Incrementing port..."
-        port=$((port + 1))
-    done
-    
-    # Update GaiaNet configuration with the available port
-    echo "Using port $port for GaiaNet Node..."
-    gaianet config --port $port
-    gaianet init
-    
-    # Start the node
     gaianet start
-    echo "Node started on port $port."
+    echo "Node started."
 }
 
 # Function to stop the node
