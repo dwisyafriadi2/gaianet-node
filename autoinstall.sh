@@ -70,7 +70,7 @@ uninstall_node() {
 auto_interaction() {
     echo "Starting Auto Interaction with Your Node..."
     check_node_version
-    local script_path="$HOME/main.js"
+    local script_path="$HOME/home/bot/gaianet-node/main.js"
     local log_file="$HOME/interaction.log"
     local pid_file="$HOME/interaction.pid"
 
