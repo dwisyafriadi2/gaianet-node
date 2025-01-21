@@ -40,7 +40,7 @@ initialize_node() {
 # Function to start the node
 start_node() {
     echo "Starting GaiaNet Node..."
-    local port=8080
+    local port=8081
     while lsof -i :$port &>/dev/null; do
         echo "Port $port is already in use. Incrementing port..."
         port=$((port + 1))
