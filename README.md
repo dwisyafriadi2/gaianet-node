@@ -1,4 +1,4 @@
-﻿﻿# gaianet-node
+﻿# gaianet-node
 ## Features
 
 - Auto Install Node
@@ -16,7 +16,11 @@
 
 ## How to run auto interaction
 1. edit on .env
-2. Here the parameter
+
+GAIA_DOMAIN=0x3xxxx {NODE ID}
+BASE_URL=gaia.domains
+GAIANET_AUTH_TOKEN=gaia-xxxxxxxxxx {TOKEN / APIKEY GAIANET}
+GROQ_API_KEY=gsk_xxxxxxxxxxx {APIKEY GROQ}
 
    
 ``GAIA_DOMAIN=0x3xxxx {NODE ID}
