@@ -82,21 +82,20 @@ async function autoInteraction() {
     const nodeId = await getNodeId();
     if (!nodeId) throw new Error("Node ID not found.");
 
-const topics = [
-  "What are the top hidden gems to visit in Paris?",
-  "Can you recommend a day itinerary for exploring Paris?",
-  "What are the best places to experience Parisian culture?",
-  "Which neighborhoods in Paris are ideal for first-time visitors?",
-  "What are some must-try local dishes in Paris?",
-  "What is the history of the Eiffel Tower?",
-  "Are there any free activities to do in Paris?",
-  "What are the best ways to get around Paris as a tourist?",
-  "Which events or festivals happen in Paris during the summer?",
-  "Where can I find the best views of the city in Paris?",
-];
+    const topics = [
+      "What are the top hidden gems to visit in Paris?",
+      "Can you recommend a day itinerary for exploring Paris?",
+      "What are the best places to experience Parisian culture?",
+      "Which neighborhoods in Paris are ideal for first-time visitors?",
+      "What are some must-try local dishes in Paris?",
+      "What is the history of the Eiffel Tower?",
+      "Are there any free activities to do in Paris?",
+      "What are the best ways to get around Paris as a tourist?",
+      "Which events or festivals happen in Paris during the summer?",
+      "Where can I find the best views of the city in Paris?",
+    ];
 
-
-    let interactionCount = 1;
+    let interactionCount = 10000;
 
     for (const topic of topics) {
       console.log(`Interaction #${interactionCount}`);
