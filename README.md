@@ -18,15 +18,13 @@
 1. edit on .env
 
 GAIA_DOMAIN=0x3xxxx {NODE ID}
+
 BASE_URL=gaia.domains
+
 GAIANET_AUTH_TOKEN=gaia-xxxxxxxxxx {TOKEN / APIKEY GAIANET}
+
 GROQ_API_KEY=gsk_xxxxxxxxxxx {APIKEY GROQ}
 
-   
-``GAIA_DOMAIN=0x3xxxx {NODE ID}
-BASE_URL=gaia.domains
-GAIANET_AUTH_TOKEN=gaia-xxxxxxxxxx {TOKEN/API GAIANET}
-GROQ_API_KEY=gsk_xxxxxxxxxxx {API GROQ}``
 
 ### 2. Groq Setup
 
