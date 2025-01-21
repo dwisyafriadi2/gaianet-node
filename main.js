@@ -5,17 +5,17 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+
 const API_CONFIG = {
-  GAIA_DOMAIN: process.env.GAIA_DOMAIN || "change with your node id",
-  BASE_URL: process.env.BASE_URL || "us.gaianet.network",
+  GAIA_DOMAIN: process.env.GAIA_DOMAIN,
+  BASE_URL: process.env.BASE_URL,
   ENDPOINT: "/v1/chat/completions",
-  ORIGIN: "https://www.gaianet.ai",
-  REFERER: "https://www.gaianet.ai/",
 };
 
 const API_URLS = {
   GAIANET: `https://${API_CONFIG.GAIA_DOMAIN}.${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINT}`,
 };
+
 
 const API_KEYS = {
   GROQ: process.env.GROQ_API_KEY || "change with your groq api key",
