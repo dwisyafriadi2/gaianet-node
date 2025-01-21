@@ -16,10 +16,8 @@ const API_URLS = {
   GAIANET: `https://${API_CONFIG.GAIA_DOMAIN}.${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINT}`,
 };
 
+console.log("Constructed URL:", API_URLS.GAIANET);
 
-const API_KEYS = {
-  GROQ: process.env.GROQ_API_KEY || "change with your groq api key",
-};
 
 const MODEL_CONFIG = {
   GROQ: {
