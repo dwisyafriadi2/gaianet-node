@@ -17,6 +17,8 @@
 ## How to run auto interaction
 1. edit on .env
 2. Here the parameter
+
+   
 ``GAIA_DOMAIN=0x3xxxx {NODE ID}
 BASE_URL=gaia.domains
 GAIANET_AUTH_TOKEN=gaia-xxxxxxxxxx {TOKEN/API GAIANET}
