@@ -16,18 +16,16 @@ const API_URLS = {
   GAIANET: `https://${API_CONFIG.GAIA_DOMAIN}.${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINT}`,
 };
 
-
 const MODEL_CONFIG = {
   GROQ: {
     NAME: "mixtral-8x7b-32768",
-    TEMPERATURE: 0.9,
-    MAX_TOKENS: 1024,
+    TEMPERATURE: 0.7,
+    MAX_TOKENS: 50, // Shortened token limit for concise responses
   },
   GAIA: {
     NAME: "Phi-3-mini-4k-instruct",
   },
 };
-
 
 const RETRY_CONFIG = {
   MAX_ATTEMPTS: 5,
@@ -37,19 +35,17 @@ const RETRY_CONFIG = {
 };
 
 const SYSTEM_PROMPTS = {
-  GAIA_GUIDE:
-    "You are a tour guide in Paris, France. Please answer the question from a Paris visitor accurately.",
-  GROQ_USER: "You are a tourist using a tour guide in Paris, France.",
+  GAIA_GUIDE: "You are a helpful and brief tour guide in Paris, France.",
+  GROQ_USER: "You are a tourist asking brief questions about Paris.",
 };
 
 const TOPICS = [
-  "What are the must-see places in Paris?",
-  "Where can I eat good food in Paris?",
-  "Which museums are popular in Paris?",
-  "Where can I go shopping in Paris?",
-  "What is the history of the Eiffel Tower?",
+  "Best places to visit in Paris?",
+  "Top restaurants in Paris?",
+  "Famous museums in Paris?",
+  "Where to shop in Paris?",
+  "History of Eiffel Tower?",
 ];
-
 
 // Initialize Groq Client
 const groqClient = new Groq({
@@ -74,16 +70,17 @@ function createGaianetHeaders(authToken) {
   };
 }
 
+// Interact with Groq
 async function getGroqUserMessage(prompt) {
   try {
     const completion = await groqClient.chat.completions.create({
       messages: [
-        { role: "system", content: "You are a helpful assistant answering brief queries." },
+        { role: "system", content: SYSTEM_PROMPTS.GROQ_USER },
         { role: "user", content: prompt },
       ],
       model: MODEL_CONFIG.GROQ.NAME,
-      temperature: 0.7, // Adjust temperature for more focused responses
-      max_tokens: 50,   // Limit response length for brevity
+      temperature: MODEL_CONFIG.GROQ.TEMPERATURE,
+      max_tokens: MODEL_CONFIG.GROQ.MAX_TOKENS,
     });
     return completion.choices[0]?.message?.content || "";
   } catch (error) {
@@ -104,9 +101,7 @@ async function chatWithGaianet(message, authToken, retryCount = RETRY_CONFIG.MAX
           { role: "user", content: message },
         ],
         stream: true, // Enable streaming response
-        stream_options: {
-          include_usage: true,
-        },
+        stream_options: { include_usage: true },
       };
 
       const response = await fetch(API_URLS.GAIANET, {
@@ -150,6 +145,7 @@ async function chatWithGaianet(message, authToken, retryCount = RETRY_CONFIG.MAX
         }
       }
 
+      console.log("\nFull GaiaNet Response:", fullResponse);
       return fullResponse;
     } catch (error) {
       console.error(`Error in GaiaNet attempt ${attempt}: ${error.message}`);
@@ -182,7 +178,7 @@ async function main() {
       console.log(`Groq User Query: ${groqMessage}`);
 
       const gaiaResponse = await chatWithGaianet(groqMessage, gaianetToken);
-      console.log(`Gaianet Response: ${gaiaResponse}`);
+      console.log(`\nGaianet Response: ${gaiaResponse}`);
 
       topicIndex++;
       interactionCount++;
