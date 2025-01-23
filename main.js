@@ -20,7 +20,7 @@ const MODEL_CONFIG = {
   GROQ: {
     NAME: "mixtral-8x7b-32768",
     TEMPERATURE: 0.7,
-    MAX_TOKENS: 50, // Shortened token limit for concise responses
+    MAX_TOKENS: 50,
   },
   GAIA: {
     NAME: "Phi-3-mini-4k-instruct",
@@ -28,10 +28,9 @@ const MODEL_CONFIG = {
 };
 
 const RETRY_CONFIG = {
-  MAX_ATTEMPTS: 10000000,
+  MAX_ATTEMPTS: 5, // Limit retries to prevent excessive looping
   INITIAL_WAIT: 5,
-  NORMAL_WAIT: 10,
-  ERROR_WAIT: 15,
+  MAX_WAIT: 60, // Cap maximum backoff wait time
 };
 
 const SYSTEM_PROMPTS = {
@@ -70,27 +69,10 @@ function createGaianetHeaders(authToken) {
   };
 }
 
-// Interact with Groq
-async function getGroqUserMessage(prompt) {
-  try {
-    const completion = await groqClient.chat.completions.create({
-      messages: [
-        { role: "system", content: SYSTEM_PROMPTS.GROQ_USER },
-        { role: "user", content: prompt },
-      ],
-      model: MODEL_CONFIG.GROQ.NAME,
-      temperature: MODEL_CONFIG.GROQ.TEMPERATURE,
-      max_tokens: MODEL_CONFIG.GROQ.MAX_TOKENS,
-    });
-    return completion.choices[0]?.message?.content || "";
-  } catch (error) {
-    console.error(`Error in Groq interaction: ${error.message}`);
-    throw error;
-  }
-}
-
-// Interact with GaiaNet API
+// GaiaNet interaction with retries
 async function chatWithGaianet(message, authToken, retryCount = RETRY_CONFIG.MAX_ATTEMPTS) {
+  let waitTime = RETRY_CONFIG.INITIAL_WAIT;
+
   for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
       const headers = createGaianetHeaders(authToken);
@@ -100,7 +82,7 @@ async function chatWithGaianet(message, authToken, retryCount = RETRY_CONFIG.MAX
           { role: "system", content: SYSTEM_PROMPTS.GAIA_GUIDE },
           { role: "user", content: message },
         ],
-        stream: true, // Enable streaming response
+        stream: true,
         stream_options: { include_usage: true },
       };
 
@@ -149,10 +131,12 @@ async function chatWithGaianet(message, authToken, retryCount = RETRY_CONFIG.MAX
       return fullResponse;
     } catch (error) {
       console.error(`Error in GaiaNet attempt ${attempt}: ${error.message}`);
+
       if (attempt < retryCount) {
-        const waitTime = Math.min(RETRY_CONFIG.NORMAL_WAIT * attempt, RETRY_CONFIG.ERROR_WAIT);
         console.log(`Retrying in ${waitTime} seconds...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+
+        waitTime = Math.min(waitTime * 2, RETRY_CONFIG.MAX_WAIT); // Exponential backoff
       } else {
         throw new Error(`Failed after ${retryCount} attempts: ${error.message}`);
       }
@@ -174,11 +158,13 @@ async function main() {
       const topic = TOPICS[topicIndex % TOPICS.length];
       console.log(`\nInteraction #${interactionCount}: ${topic}`);
 
-      const groqMessage = await getGroqUserMessage(topic);
-      console.log(`Groq User Query: ${groqMessage}`);
-
-      const gaiaResponse = await chatWithGaianet(groqMessage, gaianetToken);
-      console.log(`\nGaianet Response: ${gaiaResponse}`);
+      try {
+        const gaiaResponse = await chatWithGaianet(topic, gaianetToken);
+        console.log(`\nGaianet Response: ${gaiaResponse}`);
+      } catch (error) {
+        console.error(`\nError during interaction: ${error.message}`);
+        console.log("Skipping to the next interaction...");
+      }
 
       topicIndex++;
       interactionCount++;
