@@ -98,15 +98,15 @@ check_node_version() {
     if command -v node > /dev/null; then
         NODE_VERSION=$(node -v | sed 's/v//; s/\\..*//')
         if [ "$NODE_VERSION" -lt 18 ]; then
-            echo "Node.js version is less than 18. Installing Node.js 18..."
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            echo "Node.js version is less than 20. Installing Node.js 20..."
+            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
             sudo apt-get install -y nodejs
         else
             echo "Node.js version is sufficient: $(node -v)"
         fi
     else
         echo "Node.js is not installed. Installing Node.js 18..."
-        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
         sudo apt-get install -y nodejs
     fi
 }
