@@ -149,12 +149,18 @@ check_node_version() {
 check_python_version() {
     if command -v python3 > /dev/null; then
         echo "Python 3 is installed: $(python3 --version)"
+        if ! dpkg -l | grep -q python3-venv; then
+            echo "Installing python3-venv package..."
+            sudo apt update
+            sudo apt install -y python3-venv
+        fi
     else
         echo "Python 3 is not installed. Installing Python 3..."
         sudo apt update
         sudo apt install -y python3 python3-pip python3-venv
     fi
 }
+
 
 # Main loop
 while true; do
