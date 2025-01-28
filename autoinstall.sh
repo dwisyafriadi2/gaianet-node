@@ -7,13 +7,16 @@ show_menu() {
     echo " GaiaNet Node Management Menu "
     echo "=============================="
     echo "1. Install GaiaNet Node"
-    echo "2. Initialize Node"
-    echo "3. Start Node"
-    echo "4. Stop Node"
-    echo "5. Uninstall GaiaNet Node"
-    echo "6. Auto Interaction with Your Node"
-    echo "7. Check Node ID and Device ID"
-    echo "8. Exit"
+    echo "2. Initialize Model Default [Llama Model]"
+    echo "3. Initialize Model Qwen 2.5"
+    echo "4. Initialize Model Phi 3.5 Mini"
+    echo "5. Start Node"
+    echo "6. Stop Node"
+    echo "7. Uninstall GaiaNet Node"
+    echo "8. Auto Interaction with Your Node [V1]"
+    echo "9. Auto Interaction with Your Node [V2]"
+    echo "10. Check Node ID and Device ID"
+    echo "11. Exit"
     echo "=============================="
 }
 
@@ -24,17 +27,25 @@ install_node() {
     source "$HOME/.bashrc"
 }
 
-# Function to initialize the node
-initialize_node() {
-    echo "Initializing GaiaNet Node..."
-    if [ -f "$HOME/.bashrc" ]; then
-        echo "Loading environment variables from .bashrc..."
-        source "$HOME/.bashrc"
-    else
-        echo "No .bashrc file found. Skipping..."
-    fi
+# Function to initialize the default Llama model
+initialize_default_model() {
+    echo "Initializing Model Default [Llama Model]..."
     gaianet init
-    echo "Initialization completed."
+    echo "Default model initialization completed."
+}
+
+# Function to initialize the Qwen 2.5 model
+initialize_qwen_model() {
+    echo "Initializing Model Qwen 2.5..."
+    gaianet init --config https://raw.githubusercontent.com/GaiaNet-AI/node-configs/main/qwen2-0.5b-instruct/config.json
+    echo "Qwen 2.5 model initialization completed."
+}
+
+# Function to initialize the Phi 3.5 Mini model
+initialize_phi_model() {
+    echo "Initializing Model Phi 3.5 Mini..."
+    gaianet init --config https://raw.githubusercontent.com/GaiaNet-AI/node-configs/main/phi-3.5-mini-instruct/config.json
+    echo "Phi 3.5 Mini model initialization completed."
 }
 
 # Function to start the node
@@ -66,13 +77,13 @@ uninstall_node() {
     echo "Uninstallation completed."
 }
 
-# Function to run auto interaction with the node
-auto_interaction() {
-    echo "Starting Auto Interaction with Your Node..."
+# Function for Auto Interaction with Your Node [V1]
+auto_interaction_v1() {
+    echo "Starting Auto Interaction with Your Node [V1]..."
     check_node_version
     local script_path="$HOME/gaianet-node/main.js"
-    local log_file="$HOME/interaction.log"
-    local pid_file="$HOME/interaction.pid"
+    local log_file="$HOME/interaction_v1.log"
+    local pid_file="$HOME/interaction_v1.pid"
 
     if [ ! -f "$script_path" ]; then
         echo "Error: Node.js script not found at $script_path"
@@ -82,7 +93,30 @@ auto_interaction() {
     node "$script_path" > "$log_file" 2>&1 &
     echo $! > "$pid_file"
 
-    echo "Auto Interaction started in the background."
+    echo "Auto Interaction V1 started in the background."
+    echo "Logs are being saved to $log_file."
+    echo "Process ID (PID): $(cat $pid_file)"
+}
+
+# Function for Auto Interaction with Your Node [V2]
+auto_interaction_v2() {
+    echo "Starting Auto Interaction with Your Node [V2]..."
+    check_python_version
+    local script_path="$HOME/gaianet-node/main.py"
+    local log_file="$HOME/interaction_v2.log"
+    local pid_file="$HOME/interaction_v2.pid"
+
+    if [ ! -f "$script_path" ]; then
+        echo "Error: Python script not found at $script_path"
+        return
+    fi
+    python3 -m venv env
+    source env/bin/activate
+    pip install -r "$HOME/gaianet-node/requirements.txt"
+    python3 "$script_path" > "$log_file" 2>&1 &
+    echo $! > "$pid_file"
+
+    echo "Auto Interaction V2 started in the background."
     echo "Logs are being saved to $log_file."
     echo "Process ID (PID): $(cat $pid_file)"
 }
@@ -93,11 +127,11 @@ check_node_info() {
     gaianet info
 }
 
-# Function to check Node.js version
+# Function to check and enforce Node.js version 20
 check_node_version() {
     if command -v node > /dev/null; then
         NODE_VERSION=$(node -v | sed 's/v//; s/\\..*//')
-        if [ "$NODE_VERSION" -lt 18 ]; then
+        if [ "$NODE_VERSION" -lt 20 ]; then
             echo "Node.js version is less than 20. Installing Node.js 20..."
             curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
             sudo apt-get install -y nodejs
@@ -105,26 +139,40 @@ check_node_version() {
             echo "Node.js version is sufficient: $(node -v)"
         fi
     else
-        echo "Node.js is not installed. Installing Node.js 18..."
+        echo "Node.js is not installed. Installing Node.js 20..."
         curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
         sudo apt-get install -y nodejs
+    fi
+}
+
+# Function to check and enforce Python version 3.x
+check_python_version() {
+    if command -v python3 > /dev/null; then
+        echo "Python 3 is installed: $(python3 --version)"
+    else
+        echo "Python 3 is not installed. Installing Python 3..."
+        sudo apt update
+        sudo apt install -y python3 python3-pip python3-venv
     fi
 }
 
 # Main loop
 while true; do
     show_menu
-    read -p "Enter your choice [1-8]: " choice
+    read -p "Enter your choice [1-11]: " choice
     case $choice in
         1) install_node ;;
-        2) initialize_node ;;
-        3) start_node ;;
-        4) stop_node ;;
-        5) uninstall_node ;;
-        6) auto_interaction ;;
-        7) check_node_info ;;
-        8) echo "Exiting..."; exit 0 ;;
-        *) echo "Invalid choice. Please select a number between 1 and 8." ;;
+        2) initialize_default_model ;;
+        3) initialize_qwen_model ;;
+        4) initialize_phi_model ;;
+        5) start_node ;;
+        6) stop_node ;;
+        7) uninstall_node ;;
+        8) auto_interaction_v1 ;;
+        9) auto_interaction_v2 ;;
+        10) check_node_info ;;
+        11) echo "Exiting..."; exit 0 ;;
+        *) echo "Invalid choice. Please select a number between 1 and 11." ;;
     esac
     echo ""
 done
