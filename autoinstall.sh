@@ -154,12 +154,13 @@ check_python_version() {
             echo "Installing python3-venv package..."
             sudo apt update
             sudo apt install -y python3-venv
-            sudo apt install python3-pip
+            sudo apt install python3-pip -y
         fi
     else
         echo "Python 3 is not installed. Installing Python 3..."
         sudo apt update
-        sudo apt install -y python3 python3-pip python3-venv
+        sudo apt install -y python3 python3-pip python3-
+        sudo apt install python3-pip -y
     fi
 }
 
