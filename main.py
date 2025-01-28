@@ -5,7 +5,6 @@ import random
 from dotenv import load_dotenv
 import os
 import logging
-from groq import Groq  # Import the Groq library
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -16,23 +15,12 @@ load_dotenv()
 # Read API token, URL, and other configurations from the environment variables
 auth_token = os.getenv('GAIANET_AUTH_TOKEN')
 api_url = os.getenv('API_URL')
-groq_api_key = os.getenv('GROQ_API_KEY')
 sleep_interval = int(os.getenv('SLEEP_INTERVAL', 5))  # Default delay is 5 seconds
 
 # Validate environment variables
-if not auth_token or not api_url or not groq_api_key:
+if not auth_token or not api_url:
     logging.error("Missing required environment variables. Check your .env file.")
     exit()
-
-# Initialize the Groq client
-groq_client = Groq(api_key=groq_api_key)
-
-# Model configuration for GROQ
-MODEL_CONFIG = {
-    "NAME": "mixtral-8x7b-32768",  # Replace with your valid GROQ model name
-    "TEMPERATURE": 0.7,
-    "MAX_TOKENS": 50,  # Limit response length for concise answers
-}
 
 # Load questions from a file
 def load_questions(filename="questions.txt"):
@@ -61,30 +49,9 @@ def generate_question():
     """
     return random.choice(questions)
 
-def send_groq_request(question):
-    """
-    Use the GROQ API to get a chat completion for the given question.
-    """
-    try:
-        logging.info(f"Sending question to GROQ API: {question}")
-        chat_completion = groq_client.chat.completions.create(
-            messages=[
-                {"role": "user", "content": question}
-            ],
-            model=MODEL_CONFIG["NAME"],
-            temperature=MODEL_CONFIG["TEMPERATURE"],
-            max_tokens=MODEL_CONFIG["MAX_TOKENS"],
-        )
-        response_content = chat_completion.choices[0].message.content.strip()
-        logging.info(f"GROQ API Response: {response_content}")
-        return response_content
-    except Exception as e:
-        logging.error(f"Failed to get response from GROQ API: {e}")
-        return None
-
 def send_gaianet_request(message):
     """
-    Send the GROQ API's response to the GaiaNet API.
+    Send the question to the GaiaNet API and print the response.
     """
     headers = {
         'Authorization': f'Bearer {auth_token}',
@@ -100,7 +67,7 @@ def send_gaianet_request(message):
     }
 
     try:
-        logging.info(f"Sending GROQ response to GaiaNet API: {message}")
+        logging.info(f"Sending question to GaiaNet API: {message}")
         response = requests.post(api_url, headers=headers, data=json.dumps(data))
 
         if response.status_code == 200:
@@ -115,22 +82,18 @@ def send_gaianet_request(message):
 
 def main():
     """
-    Main function to generate a question, get a response from GROQ, and send it to GaiaNet.
+    Main function to select a random question and send it to GaiaNet.
     """
     while True:
         try:
-            # Generate a single question
+            # Generate a random question
             question = generate_question()
 
-            # Send the question to GROQ API
-            groq_response = send_groq_request(question)
+            # Send the question to GaiaNet API
+            logging.info(f"Selected Question: {question}")
+            send_gaianet_request(question)
 
-            # If GROQ API provides a valid response, send it to GaiaNet API
-            if groq_response:
-                logging.info(f"Processing question: {question}")
-                send_gaianet_request(groq_response)
-
-            # Add a delay between iterations to prevent overloading the APIs
+            # Add a delay between iterations to prevent overloading the API
             time.sleep(sleep_interval)
         except KeyboardInterrupt:
             logging.info("Program interrupted by user. Exiting...")
