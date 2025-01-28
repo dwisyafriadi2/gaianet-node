@@ -136,22 +136,31 @@ auto_interaction_v2() {
 }
 
 # Function to stop any interaction
+# Function to stop any interaction
 stop_interaction() {
-    local pid_file="$HOME/interaction.pid"
-    if [ -f "$pid_file" ]; then
-        local pid=$(cat "$pid_file")
-        if kill -0 "$pid" 2>/dev/null; then
-            kill "$pid"
-            echo "Interaction process with PID $pid stopped."
-            rm -f "$pid_file"
-        else
-            echo "No running process found for PID $pid."
-            rm -f "$pid_file"
+    local pid_files=("$HOME/interaction_v1.pid" "$HOME/interaction_v2.pid")  # Check both V1 and V2 PID files
+    local interaction_stopped=false
+
+    for pid_file in "${pid_files[@]}"; do
+        if [ -f "$pid_file" ]; then
+            local pid=$(cat "$pid_file")
+            if kill -0 "$pid" 2>/dev/null; then
+                kill "$pid"
+                echo "Interaction process with PID $pid stopped (from $pid_file)."
+                rm -f "$pid_file"
+                interaction_stopped=true
+            else
+                echo "No running process found for PID $pid in $pid_file."
+                rm -f "$pid_file"
+            fi
         fi
-    else
-        echo "No PID file found. Interaction may not be running."
+    done
+
+    if [ "$interaction_stopped" = false ]; then
+        echo "No PID file found. No interaction processes are running."
     fi
 }
+
 
 # Function to check Node ID and Device ID
 check_node_info() {
