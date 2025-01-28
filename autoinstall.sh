@@ -15,8 +15,9 @@ show_menu() {
     echo "7. Uninstall GaiaNet Node"
     echo "8. Auto Interaction with Your Node [V1]"
     echo "9. Auto Interaction with Your Node [V2]"
-    echo "10. Check Node ID and Device ID"
-    echo "11. Exit"
+    echo "10. Stop Interaction"
+    echo "11. Check Node ID and Device ID"
+    echo "12. Exit"
     echo "=============================="
 }
 
@@ -110,16 +111,46 @@ auto_interaction_v2() {
         echo "Error: Python script not found at $script_path"
         return
     fi
-    python3 -m venv env
-    source env/bin/activate
+
+    # Ensure a virtual environment exists
+    if [ ! -d "$HOME/gaianet-node/env" ]; then
+        echo "Creating Python virtual environment..."
+        python3 -m venv "$HOME/gaianet-node/env"
+    fi
+
+    # Activate the virtual environment
+    source "$HOME/gaianet-node/env/bin/activate"
+
+    # Install required Python dependencies
+    echo "Installing required Python packages..."
     pip install -r "$HOME/gaianet-node/requirements.txt"
-    pip3 install -r "$HOME/gaianet-node/requirements.txt"
-    python3 "$script_path" > "$log_file" 2>&1 &
+
+    # Use nohup to run the Python script in the background
+    echo "Starting the Python script with nohup..."
+    nohup python3 "$script_path" > "$log_file" 2>&1 &
     echo $! > "$pid_file"
 
     echo "Auto Interaction V2 started in the background."
     echo "Logs are being saved to $log_file."
     echo "Process ID (PID): $(cat $pid_file)"
+}
+
+# Function to stop any interaction
+stop_interaction() {
+    local pid_file="$HOME/interaction.pid"
+    if [ -f "$pid_file" ]; then
+        local pid=$(cat "$pid_file")
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid"
+            echo "Interaction process with PID $pid stopped."
+            rm -f "$pid_file"
+        else
+            echo "No running process found for PID $pid."
+            rm -f "$pid_file"
+        fi
+    else
+        echo "No PID file found. Interaction may not be running."
+    fi
 }
 
 # Function to check Node ID and Device ID
@@ -154,21 +185,18 @@ check_python_version() {
             echo "Installing python3-venv package..."
             sudo apt update
             sudo apt install -y python3-venv
-            sudo apt install python3-pip -y
         fi
     else
         echo "Python 3 is not installed. Installing Python 3..."
         sudo apt update
-        sudo apt install -y python3 python3-pip python3-
-        sudo apt install python3-pip -y
+        sudo apt install -y python3 python3-venv python3-pip
     fi
 }
-
 
 # Main loop
 while true; do
     show_menu
-    read -p "Enter your choice [1-11]: " choice
+    read -p "Enter your choice [1-12]: " choice
     case $choice in
         1) install_node ;;
         2) initialize_default_model ;;
@@ -179,9 +207,10 @@ while true; do
         7) uninstall_node ;;
         8) auto_interaction_v1 ;;
         9) auto_interaction_v2 ;;
-        10) check_node_info ;;
-        11) echo "Exiting..."; exit 0 ;;
-        *) echo "Invalid choice. Please select a number between 1 and 11." ;;
+        10) stop_interaction ;;
+        11) check_node_info ;;
+        12) echo "Exiting..."; exit 0 ;;
+        *) echo "Invalid choice. Please select a number between 1 and 12." ;;
     esac
     echo ""
 done
